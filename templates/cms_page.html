@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ page.title or site.product_name }}{% if page.slug == 'home' %} — {{ site.tagline }}{% endif %}</title>
+{% if page.meta_description %}<meta name="description" content="{{ page.meta_description }}">{% endif %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eef2ff',100:'#e0e7ff',500:'#4f46e5',600:'#4338ca',700:'#3730a3',900:'#1e1b4b' } }, fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] } } } }
+</script>
+<style>body{font-family:'Inter',ui-sans-serif,system-ui,sans-serif;}</style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-100">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2 font-bold text-lg text-brand-700">
+      {% if site.logo_url %}<img src="{{ site.logo_url }}" alt="{{ site.product_name }}" class="h-7 max-w-[160px] object-contain">
+      {% else %}{{ site.product_name }}{% endif %}
+    </a>
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+      <a href="/#how" class="hover:text-ink">How it works</a>
+      <a href="/pricing" class="hover:text-ink">Pricing</a>
+      {% for p in nav_pages %}
+      <a href="/{{ p.slug }}" class="hover:text-ink">{{ p.label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href="/login" class="text-sm font-medium text-slate-600 hover:text-ink">Log in</a>
+      <a href="/register" class="text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg shadow-sm shadow-brand-600/20">Start Free</a>
+    </div>
+  </div>
+</header>
+
+{% for group in groups %}
+
+  {% if group.kind == 'hero' %}
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-brand-50 via-white to-white"></div>
+    <div class="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
+      <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 leading-[1.05]">{{ group.data.heading }}</h1>
+      {% if group.data.subheading %}<p class="mt-6 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">{{ group.data.subheading }}</p>{% endif %}
+      <div class="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+        {% if group.data.primary_cta_label %}
+        <a href="{{ group.data.primary_cta_url or '/register' }}" class="w-full sm:w-auto text-center bg-brand-600 hover:bg-brand-700 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg shadow-brand-600/25 transition">{{ group.data.primary_cta_label }}</a>
+        {% endif %}
+        {% if group.data.secondary_cta_label %}
+        <a href="{{ group.data.secondary_cta_url or '#' }}" class="w-full sm:w-auto text-center border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold px-7 py-3.5 rounded-xl transition">{{ group.data.secondary_cta_label }}</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {% elif group.kind == 'section_heading' %}
+  <div class="max-w-4xl mx-auto px-6 pt-16 text-center" id="how">
+    <h2 class="text-2xl md:text-3xl font-bold">{{ group.data.heading }}</h2>
+    {% if group.data.subheading %}<p class="text-slate-500 mt-2">{{ group.data.subheading }}</p>{% endif %}
+  </div>
+
+  {% elif group.kind == 'rich_text' %}
+  <section class="max-w-3xl mx-auto px-6 py-10">
+    {% if group.data.heading %}<h2 class="text-2xl font-bold mb-4">{{ group.data.heading }}</h2>{% endif %}
+    {% for para in group.data.body.split('\n\n') if para.strip() %}
+    <p class="text-slate-600 mb-4">{{ para.strip() }}</p>
+    {% endfor %}
+  </section>
+
+  {% elif group.kind == 'feature_grid' %}
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <div class="grid md:grid-cols-3 gap-6">
+      {% for item in group.entries %}
+      <div class="rounded-xl border border-slate-200 p-6">
+        <p class="font-semibold text-slate-900">{{ item.title }}</p>
+        {% if item.description %}<p class="text-sm text-slate-500 mt-1.5">{{ item.description }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% elif group.kind == 'faq_group' %}
+  <section class="max-w-3xl mx-auto px-6 py-10">
+    <div class="space-y-3">
+      {% for item in group.entries %}
+      <details class="bg-slate-50 rounded-xl border border-slate-200 p-5 group">
+        <summary class="font-medium cursor-pointer list-none flex justify-between items-center">{{ item.question }}<span class="text-slate-400 group-open:rotate-45 transition">+</span></summary>
+        <p class="text-sm text-slate-500 mt-3">{{ item.answer }}</p>
+      </details>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% elif group.kind == 'cta_banner' %}
+  <section class="max-w-5xl mx-auto px-6 py-16 text-center">
+    <h2 class="text-3xl font-bold">{{ group.data.heading }}</h2>
+    {% if group.data.subtext %}<p class="text-slate-500 mt-3">{{ group.data.subtext }}</p>{% endif %}
+    {% if group.data.button_label %}
+    <a href="{{ group.data.button_url or '/register' }}" class="inline-block mt-7 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg shadow-brand-600/25">{{ group.data.button_label }}</a>
+    {% endif %}
+  </section>
+
+  {% elif group.kind == 'image_text' %}
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid md:grid-cols-2 gap-10 items-center {{ 'md:[direction:rtl]' if group.data.layout == 'image_left' else '' }}">
+      <div class="{{ 'md:[direction:ltr]' if group.data.layout == 'image_left' else '' }}">
+        {% if group.data.heading %}<h2 class="text-2xl font-bold mb-4">{{ group.data.heading }}</h2>{% endif %}
+        {% for para in (group.data.body or '').split('\n\n') if para.strip() %}
+        <p class="text-slate-600 mb-3">{{ para.strip() }}</p>
+        {% endfor %}
+      </div>
+      <div class="md:[direction:ltr]">
+        {% if group.data.image_url %}
+        <img src="{{ group.data.image_url }}" alt="{{ group.data.heading }}" class="rounded-xl border border-slate-200 w-full object-cover">
+        {% else %}
+        <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 aspect-video flex items-center justify-center text-slate-400 text-sm">No image set</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {% elif group.kind == 'pricing_section' %}
+  <section id="pricing" class="max-w-7xl mx-auto px-6 py-16">
+    <h2 class="text-2xl md:text-3xl font-bold text-center">{{ group.data.heading }}</h2>
+    {% if group.data.subheading %}<p class="text-center text-slate-500 mt-2">{{ group.data.subheading }}</p>{% endif %}
+    <div class="mt-10 grid md:grid-cols-4 gap-5">
+      {% for key, plan in PLAN_LIMITS.items() %}
+      <div class="rounded-2xl border {{ 'border-brand-600 shadow-xl shadow-brand-600/10 relative' if key=='professional' else 'border-slate-200' }} p-6 bg-white flex flex-col">
+        {% if key == 'professional' %}<span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-[11px] font-semibold px-3 py-1 rounded-full">Most Popular</span>{% endif %}
+        <p class="font-semibold text-slate-500 text-sm">{{ plan.label }}</p>
+        <p class="text-3xl font-bold mt-1">${{ plan.price }}<span class="text-sm font-medium text-slate-400">/mo</span></p>
+        <ul class="mt-5 space-y-2 text-sm text-slate-600 flex-1">
+          <li class="flex gap-2"><span class="text-brand-600">✓</span>{{ plan.invoices }} {{ site.term_record_plural|lower }}/mo</li>
+          <li class="flex gap-2"><span class="text-brand-600">✓</span>{{ plan.users }} users</li>
+        </ul>
+        <a href="/register" class="mt-6 block text-center font-semibold rounded-lg px-4 py-2.5 {{ 'bg-brand-600 hover:bg-brand-700 text-white' if key=='professional' else 'border border-slate-200 hover:border-slate-300 text-slate-700' }}">
+          {{ 'Start Free' if key=='free' else 'Get Started' }}
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% elif group.kind == 'spacer' %}
+  <div class="{{ {'sm':'h-6','md':'h-12','lg':'h-24'}.get(group.data.size, 'h-12') }}"></div>
+  {% endif %}
+
+{% endfor %}
+
+<footer class="border-t border-slate-100 py-8 text-center text-xs text-slate-400">
+  © 2026 {{ site.product_name }}.{% if site.support_email %} Questions: {{ site.support_email }}{% endif %}
+</footer>
+
+</body>
+</html>

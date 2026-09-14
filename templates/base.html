@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ site.product_name }}{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:'#eef2ff',100:'#e0e7ff',500:'#4f46e5',600:'#4338ca',700:'#3730a3',900:'#1e1b4b' },
+          ink: '#0f172a'
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] }
+      }
+    }
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.12/htmx.min.js"></script>
+<style>
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  .badge { display:inline-flex; align-items:center; padding:0.125rem 0.6rem; border-radius:9999px; font-size:0.72rem; font-weight:600; letter-spacing:.01em; }
+</style>
+</head>
+<body class="h-full text-ink antialiased">
+{% if user %}
+<div class="min-h-full flex">
+  <!-- Sidebar -->
+  <aside class="hidden md:flex md:w-60 md:flex-col fixed inset-y-0 border-r border-slate-200 bg-white">
+    <div class="h-16 flex items-center px-5 border-b border-slate-100">
+      <a href="/dashboard" class="flex items-center gap-2 font-bold text-lg text-brand-700">
+        {% if site.logo_url %}<img src="{{ site.logo_url }}" alt="{{ site.product_name }}" class="h-7 max-w-[160px] object-contain">
+        {% else %}{{ site.product_name }}{% endif %}
+      </a>
+    </div>
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
+      <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Dashboard</a>
+      <a href="/invoices" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">{{ site.term_record_plural }}</a>
+      <a href="/invoices/upload" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Upload {{ site.term_record_singular }}</a>
+      <a href="/vendors" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">{{ site.term_party_plural }}</a>
+      <a href="/notifications" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Notifications</a>
+      <a href="/billing" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Billing</a>
+      {% if user.role in ('owner','admin') %}
+      <div class="pt-4 mt-4 border-t border-slate-100">
+        <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Settings</p>
+        <a href="/settings" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Organization</a>
+        <a href="/settings/users" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Users</a>
+        <a href="/settings/rules" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Validation Rules</a>
+      </div>
+      {% endif %}
+      {% if user.is_platform_admin %}
+      <div class="pt-4 mt-4 border-t border-slate-100">
+        <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Admin</p>
+        <a href="/admin" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Platform Overview</a>
+        <a href="/admin/pages" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Pages</a>
+        <a href="/admin/branding" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-ink">Branding</a>
+      </div>
+      {% endif %}
+    </nav>
+    <div class="p-3 border-t border-slate-100">
+      <div class="px-3 py-2 rounded-lg bg-slate-50 text-xs">
+        <p class="font-semibold text-ink truncate">{{ user.full_name }}</p>
+        <p class="text-slate-500 truncate">{{ user.organization.name }}</p>
+      </div>
+      <a href="/logout" class="block text-center mt-2 text-xs text-slate-500 hover:text-ink py-1.5">Sign out</a>
+    </div>
+  </aside>
+  <div class="flex-1 md:ml-60">
+    <header class="md:hidden h-14 flex items-center justify-between px-4 border-b border-slate-200 bg-white">
+      <a href="/dashboard" class="font-bold text-brand-700">{{ site.product_name }}</a>
+      <a href="/logout" class="text-xs text-slate-500">Sign out</a>
+    </header>
+    <main class="p-4 md:p-8 max-w-7xl mx-auto">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+  {% block full %}{% endblock %}
+{% endif %}
+</body>
+</html>

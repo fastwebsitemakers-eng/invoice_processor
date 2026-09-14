@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Dashboard</h1>
+    <p class="text-slate-500 text-sm mt-0.5">{{ org.name }} · {{ PLAN_LIMITS[org.plan].label }} plan</p>
+  </div>
+  <a href="/invoices/upload" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm">Upload {{ site.term_record_singular }}</a>
+</div>
+
+{% if pct_used >= 80 %}
+<div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between">
+  <p class="text-sm text-amber-800"><strong>{{ used }}/{{ limit }}</strong> invoices used this month on the {{ PLAN_LIMITS[org.plan].label }} plan.</p>
+  <a href="/billing" class="text-sm font-semibold text-amber-800 underline">Upgrade →</a>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <p class="text-xs text-slate-500">Invoices This Month</p>
+    <p class="text-2xl font-bold mt-1">{{ invoices_this_month }}</p>
+    <p class="text-xs text-slate-400 mt-1">${{ '{:,.0f}'.format(spend_this_month) }} spend</p>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <p class="text-xs text-amber-600 font-medium">Needs Review</p>
+    <p class="text-2xl font-bold mt-1 text-amber-600">{{ needs_review }}</p>
+    <p class="text-xs text-slate-400 mt-1">Awaiting decision</p>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <p class="text-xs text-emerald-600 font-medium">Potential Savings</p>
+    <p class="text-2xl font-bold mt-1 text-emerald-600">${{ '{:,.0f}'.format(potential_savings) }}</p>
+    <p class="text-xs text-slate-400 mt-1">Flagged, not guaranteed</p>
+  </div>
+  <div class="bg-white rounded-xl border border-slate-200 p-5">
+    <p class="text-xs text-rose-600 font-medium">High Risk Invoices</p>
+    <p class="text-2xl font-bold mt-1 text-rose-600">{{ high_risk }}</p>
+    <p class="text-xs text-slate-400 mt-1">Score ≥ 60</p>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200">
+  <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="font-semibold text-sm">Recent invoices</h2>
+    <a href="/invoices" class="text-xs text-brand-600 font-medium">View all →</a>
+  </div>
+  {% if recent_invoices %}
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Invoice #</th><th class="px-5 py-2 font-medium">Vendor</th>
+      <th class="px-5 py-2 font-medium">Total</th><th class="px-5 py-2 font-medium">Risk</th>
+      <th class="px-5 py-2 font-medium">Status</th>
+    </tr></thead>
+    <tbody>
+    {% for inv in recent_invoices %}
+      <tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
+        <td class="px-5 py-3 font-medium">{{ inv.invoice_number or '—' }}</td>
+        <td class="px-5 py-3 text-slate-500">{{ inv.vendor.name if inv.vendor else '—' }}</td>
+        <td class="px-5 py-3">${{ '{:,.2f}'.format(inv.total) }}</td>
+        <td class="px-5 py-3">
+          <span class="badge {{ {'low':'bg-slate-100 text-slate-600','medium':'bg-amber-100 text-amber-700','high':'bg-orange-100 text-orange-700','critical':'bg-rose-100 text-rose-700'}[inv.risk_level] }}">{{ inv.risk_level }}</span>
+        </td>
+        <td class="px-5 py-3 text-slate-500">{{ inv.status.replace('_',' ') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center py-16">
+    <p class="text-slate-500 text-sm">No invoices yet.</p>
+    <a href="/invoices/upload" class="inline-block mt-3 text-brand-600 font-semibold text-sm">Upload your first invoice →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

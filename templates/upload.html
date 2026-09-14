@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Upload {{ site.term_record_singular }}</h1>
+
+{% if limit_reached %}
+<div class="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto">
+  <p class="text-lg font-semibold">You've reached your monthly invoice limit.</p>
+  <p class="text-slate-500 text-sm mt-2">The {{ PLAN_LIMITS[org.plan].label }} plan includes {{ PLAN_LIMITS[org.plan].invoices }} invoices/month. Upgrade your plan to continue processing invoices.</p>
+  <a href="/billing" class="inline-block mt-5 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-6 py-2.5 rounded-lg">Upgrade plan</a>
+</div>
+{% else %}
+<form method="post" action="/invoices/upload" enctype="multipart/form-data" class="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl space-y-5">
+  <div>
+    <label class="text-sm font-medium text-slate-700">Invoice document (PDF, PNG, JPG — max 10MB)</label>
+    <input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 w-full text-sm border border-slate-300 rounded-lg px-3 py-2">
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="text-sm font-medium text-slate-700">Vendor</label>
+      <select name="vendor_id" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        <option value="">— None —</option>
+        {% for v in vendors %}<option value="{{ v.id }}">{{ v.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Invoice number</label>
+      <input name="invoice_number" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Invoice date</label>
+      <input type="date" name="invoice_date" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Due date</label>
+      <input type="date" name="due_date" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">PO number</label>
+      <input name="po_number" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div></div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Subtotal</label>
+      <input type="number" step="0.01" name="subtotal" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Tax</label>
+      <input type="number" step="0.01" name="tax" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Total</label>
+      <input type="number" step="0.01" name="total" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+  </div>
+  <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5 text-sm">Upload & Analyze</button>
+</form>
+{% endif %}
+{% endblock %}

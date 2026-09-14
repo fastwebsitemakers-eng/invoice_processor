@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-1">Pages</h1>
+<p class="text-slate-500 text-sm mb-6">Manage the marketing site. "home" and "pricing" are built-in and can't be deleted, but every block on them is editable.</p>
+
+{% if error == 'slug' %}
+<div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
+  That slug is already taken, reserved, or contains invalid characters. Use lowercase letters, numbers, and hyphens only.
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl border border-slate-200 p-5 mb-6">
+  <h2 class="font-semibold text-sm mb-3">Create a new page</h2>
+  <form method="post" action="/admin/pages" class="grid md:grid-cols-4 gap-3 items-end">
+    <div>
+      <label class="text-xs font-medium text-slate-600 block mb-1">Title</label>
+      <input name="title" required placeholder="About us" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-xs font-medium text-slate-600 block mb-1">URL slug</label>
+      <input name="slug" required placeholder="about" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      <p class="text-[11px] text-slate-400 mt-1">Served at yoursite.com/&lt;slug&gt;</p>
+    </div>
+    <div>
+      <label class="text-xs font-medium text-slate-600 block mb-1">Nav label (optional)</label>
+      <input name="nav_label" placeholder="About" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div class="flex items-center gap-4">
+      <label class="flex items-center gap-2 text-sm text-slate-600">
+        <input type="checkbox" name="show_in_nav" value="1"> Show in nav
+      </label>
+      <button class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2">Create</button>
+    </div>
+  </form>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Title</th><th class="px-5 py-2 font-medium">URL</th>
+      <th class="px-5 py-2 font-medium">Nav</th><th class="px-5 py-2 font-medium">Status</th><th class="px-5 py-2"></th>
+    </tr></thead>
+    <tbody>
+    {% for p in pages %}
+      <tr class="border-b border-slate-50">
+        <td class="px-5 py-3 font-medium">{{ p.title }} {% if p.is_system %}<span class="badge bg-slate-100 text-slate-500 ml-1">system</span>{% endif %}</td>
+        <td class="px-5 py-3 text-slate-500 font-mono text-xs">{{ '/' if p.slug == 'home' else '/' + p.slug }}</td>
+        <td class="px-5 py-3 text-slate-500">{{ 'in nav' if p.show_in_nav else '—' }}</td>
+        <td class="px-5 py-3">
+          <span class="badge {{ 'bg-emerald-100 text-emerald-700' if p.is_published else 'bg-slate-100 text-slate-500' }}">{{ 'published' if p.is_published else 'draft' }}</span>
+        </td>
+        <td class="px-5 py-3 text-right whitespace-nowrap">
+          <a href="/admin/pages/{{ p.id }}/edit" class="text-xs text-brand-600 font-medium mr-3">Edit content</a>
+          {% if not p.is_system %}
+          <form method="post" action="/admin/pages/{{ p.id }}/delete" class="inline" onsubmit="return confirm('Delete page {{ p.title }}? This removes all its content blocks too.');">
+            <button class="text-xs text-slate-400 hover:text-rose-600">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

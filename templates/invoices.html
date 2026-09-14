@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">{{ site.term_record_plural }}</h1>
+  <a href="/invoices/upload" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm">Upload {{ site.term_record_singular }}</a>
+</div>
+
+<form method="get" class="flex flex-wrap gap-2 mb-4">
+  <input name="q" value="{{ q }}" placeholder="Search invoice #" class="rounded-lg border border-slate-300 px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-brand-500">
+  <select name="status" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    <option value="">All statuses</option>
+    {% for s in ['uploaded','processed','needs_review','approved','rejected','paid'] %}
+    <option value="{{ s }}" {{ 'selected' if s==status else '' }}>{{ s.replace('_',' ') }}</option>
+    {% endfor %}
+  </select>
+  <button class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:border-slate-400">Filter</button>
+</form>
+
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  {% if invoices %}
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Invoice #</th><th class="px-5 py-2 font-medium">Vendor</th>
+      <th class="px-5 py-2 font-medium">Date</th><th class="px-5 py-2 font-medium">Total</th>
+      <th class="px-5 py-2 font-medium">Risk</th><th class="px-5 py-2 font-medium">Status</th>
+    </tr></thead>
+    <tbody>
+    {% for inv in invoices %}
+      <tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
+        <td class="px-5 py-3 font-medium">{{ inv.invoice_number or '—' }}</td>
+        <td class="px-5 py-3 text-slate-500">{{ inv.vendor.name if inv.vendor else '—' }}</td>
+        <td class="px-5 py-3 text-slate-500">{{ inv.invoice_date or '—' }}</td>
+        <td class="px-5 py-3">${{ '{:,.2f}'.format(inv.total) }}</td>
+        <td class="px-5 py-3">
+          <span class="badge {{ {'low':'bg-slate-100 text-slate-600','medium':'bg-amber-100 text-amber-700','high':'bg-orange-100 text-orange-700','critical':'bg-rose-100 text-rose-700'}[inv.risk_level] }}">{{ inv.risk_level }} · {{ inv.risk_score }}</span>
+        </td>
+        <td class="px-5 py-3 text-slate-500">{{ inv.status.replace('_',' ') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center py-16">
+    <p class="text-slate-500 text-sm">No invoices match your filters.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

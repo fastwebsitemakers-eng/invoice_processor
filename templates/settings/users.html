@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-1">Users</h1>
+<p class="text-slate-500 text-sm mb-6">{{ user_count }}/{{ user_limit }} users on the {{ PLAN_LIMITS[org.plan].label }} plan.</p>
+
+<div class="flex gap-2 mb-6 text-sm">
+  <a href="/settings" class="px-3 py-1.5 rounded-lg text-slate-500 hover:bg-slate-100">Organization</a>
+  <a href="/settings/users" class="px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 font-medium">Users</a>
+  <a href="/settings/rules" class="px-3 py-1.5 rounded-lg text-slate-500 hover:bg-slate-100">Validation Rules</a>
+</div>
+
+{% if error == 'limit' %}
+<div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+  User limit reached for the {{ PLAN_LIMITS[org.plan].label }} plan. <a href="/billing" class="font-semibold underline">Upgrade to add more users →</a>
+</div>
+{% elif error == 'exists' %}
+<div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">A user with that email already exists.</div>
+{% elif error == 'password' %}
+<div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">Password must be at least 8 characters.</div>
+{% endif %}
+
+<div class="bg-white rounded-xl border border-slate-200 p-5 mb-6">
+  <h2 class="font-semibold text-sm mb-3">Invite a user</h2>
+  <form method="post" action="/settings/users" class="grid md:grid-cols-5 gap-3">
+    <input name="first_name" placeholder="First name" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    <input name="last_name" placeholder="Last name" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    <input name="email" type="email" required placeholder="Email" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    <input name="password" type="password" required placeholder="Temp password (8+ chars)" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    <select name="role" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      {% for r in ROLES %}<option value="{{ r }}" {{ 'selected' if r=='viewer' else '' }}>{{ r }}</option>{% endfor %}
+    </select>
+    <button class="md:col-span-5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg py-2">Add user</button>
+  </form>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Name</th><th class="px-5 py-2 font-medium">Email</th>
+      <th class="px-5 py-2 font-medium">Role</th><th class="px-5 py-2 font-medium">Status</th><th class="px-5 py-2"></th>
+    </tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr class="border-b border-slate-50">
+        <td class="px-5 py-3 font-medium">{{ u.full_name }}{% if u.id == user.id %} <span class="text-xs text-slate-400 font-normal">(you)</span>{% endif %}</td>
+        <td class="px-5 py-3 text-slate-500">{{ u.email }}</td>
+        <td class="px-5 py-3"><span class="badge bg-slate-100 text-slate-600">{{ u.role }}</span></td>
+        <td class="px-5 py-3">
+          <span class="badge {{ 'bg-emerald-100 text-emerald-700' if u.is_active else 'bg-slate-100 text-slate-500' }}">{{ 'active' if u.is_active else 'inactive' }}</span>
+        </td>
+        <td class="px-5 py-3 text-right whitespace-nowrap">
+          <a href="/settings/users/{{ u.id }}/edit" class="text-xs text-brand-600 font-medium mr-3">Edit</a>
+          {% if u.id != user.id %}
+          <form method="post" action="/settings/users/{{ u.id }}/toggle-active" class="inline">
+            <button class="text-xs text-slate-500 hover:text-ink mr-3">{{ 'Deactivate' if u.is_active else 'Activate' }}</button>
+          </form>
+          <form method="post" action="/settings/users/{{ u.id }}/delete" class="inline" onsubmit="return confirm('Delete {{ u.email }}? This cannot be undone.');">
+            <button class="text-xs text-slate-400 hover:text-rose-600">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/settings/users" class="text-sm text-slate-500 hover:text-ink">← Back to users</a>
+<h1 class="text-2xl font-bold mt-3 mb-6">Edit User</h1>
+
+<form method="post" action="/settings/users/{{ target.id }}" class="bg-white rounded-xl border border-slate-200 p-6 max-w-lg space-y-4">
+  <div>
+    <label class="text-sm font-medium text-slate-700">Email</label>
+    <input value="{{ target.email }}" disabled class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-400">
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="text-sm font-medium text-slate-700">First name</label>
+      <input name="first_name" value="{{ target.first_name }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Last name</label>
+      <input name="last_name" value="{{ target.last_name }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+  </div>
+  <div>
+    <label class="text-sm font-medium text-slate-700">Role</label>
+    <select name="role" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      {% for r in ROLES %}<option value="{{ r }}" {{ 'selected' if r == target.role else '' }}>{{ r }}</option>{% endfor %}
+    </select>
+    {% if target.id == user.id %}<p class="text-xs text-slate-400 mt-1">Role changes to your own account are ignored for safety.</p>{% endif %}
+  </div>
+  <button class="bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">Save changes</button>
+</form>
+{% endblock %}

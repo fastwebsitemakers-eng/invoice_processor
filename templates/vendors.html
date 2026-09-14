@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">{{ site.term_party_plural }}</h1>
+  <button onclick="document.getElementById('new-vendor').classList.toggle('hidden')" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm">Add Vendor</button>
+</div>
+
+<form id="new-vendor" method="post" action="/vendors" class="hidden bg-white rounded-xl border border-slate-200 p-5 mb-6 grid md:grid-cols-3 gap-3">
+  <input name="name" required placeholder="Vendor name" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  <input name="email" placeholder="Email" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  <input name="phone" placeholder="Phone" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  <input name="tax_id" placeholder="Tax ID" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  <input name="payment_terms" placeholder="Payment terms" value="Net 30" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  <button class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg">Save vendor</button>
+</form>
+
+<form method="get" class="mb-4">
+  <input name="q" value="{{ q }}" placeholder="Search vendors" class="rounded-lg border border-slate-300 px-3 py-2 text-sm w-64">
+</form>
+
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  {% if vendors %}
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Vendor</th><th class="px-5 py-2 font-medium">Terms</th>
+      <th class="px-5 py-2 font-medium">{{ site.term_record_plural }}</th><th class="px-5 py-2 font-medium">Total Spend</th>
+      <th class="px-5 py-2 font-medium">Status</th><th class="px-5 py-2"></th>
+    </tr></thead>
+    <tbody>
+    {% for v in vendors %}
+      {% set s = spend.get(v.id, {'total':0,'count':0}) %}
+      <tr class="border-b border-slate-50 hover:bg-slate-50">
+        <td class="px-5 py-3 font-medium">{{ v.name }}</td>
+        <td class="px-5 py-3 text-slate-500">{{ v.payment_terms }}</td>
+        <td class="px-5 py-3">{{ s.count }}</td>
+        <td class="px-5 py-3">${{ '{:,.2f}'.format(s.total) }}</td>
+        <td class="px-5 py-3">
+          <span class="badge {{ 'bg-emerald-100 text-emerald-700' if v.status == 'active' else 'bg-slate-100 text-slate-500' }}">{{ v.status }}</span>
+        </td>
+        <td class="px-5 py-3 text-right whitespace-nowrap">
+          <a href="/vendors/{{ v.id }}/edit" class="text-xs text-brand-600 font-medium mr-3">Edit</a>
+          {% if user.role in ('owner','admin') %}
+          <form method="post" action="/vendors/{{ v.id }}/delete" class="inline" onsubmit="return confirm('Delete vendor {{ v.name }}?');">
+            <button class="text-xs text-slate-400 hover:text-rose-600">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center py-16"><p class="text-slate-500 text-sm">No vendors yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

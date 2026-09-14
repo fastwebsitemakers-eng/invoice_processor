@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/vendors" class="text-sm text-slate-500 hover:text-ink">← Back to vendors</a>
+<h1 class="text-2xl font-bold mt-3 mb-6">Edit Vendor</h1>
+
+<form method="post" action="/vendors/{{ vendor.id }}" class="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl space-y-4">
+  <div class="grid grid-cols-2 gap-4">
+    <div class="col-span-2">
+      <label class="text-sm font-medium text-slate-700">Vendor name</label>
+      <input name="name" required value="{{ vendor.name }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Email</label>
+      <input name="email" value="{{ vendor.email }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Phone</label>
+      <input name="phone" value="{{ vendor.phone }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div class="col-span-2">
+      <label class="text-sm font-medium text-slate-700">Address</label>
+      <input name="address" value="{{ vendor.address }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Tax ID</label>
+      <input name="tax_id" value="{{ vendor.tax_id }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Payment terms</label>
+      <input name="payment_terms" value="{{ vendor.payment_terms }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Status</label>
+      <select name="status" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        <option value="active" {{ 'selected' if vendor.status=='active' else '' }}>Active</option>
+        <option value="inactive" {{ 'selected' if vendor.status=='inactive' else '' }}>Inactive</option>
+      </select>
+      <p class="text-xs text-slate-400 mt-1">Inactive vendors are automatically flagged on new invoices.</p>
+    </div>
+  </div>
+  <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5 text-sm">Save changes</button>
+</form>
+{% endblock %}

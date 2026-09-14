@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/invoices/{{ invoice.id }}" class="text-sm text-slate-500 hover:text-ink">← Back to invoice</a>
+<h1 class="text-2xl font-bold mt-3 mb-6">Edit Invoice {{ invoice.invoice_number or '' }}</h1>
+
+<form method="post" action="/invoices/{{ invoice.id }}" class="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl space-y-4">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="text-sm font-medium text-slate-700">Vendor</label>
+      <select name="vendor_id" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        <option value="">— None —</option>
+        {% for v in vendors %}
+        <option value="{{ v.id }}" {{ 'selected' if invoice.vendor_id == v.id else '' }}>{{ v.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Invoice number</label>
+      <input name="invoice_number" value="{{ invoice.invoice_number }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Invoice date</label>
+      <input type="date" name="invoice_date" value="{{ invoice.invoice_date or '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Due date</label>
+      <input type="date" name="due_date" value="{{ invoice.due_date or '' }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">PO number</label>
+      <input name="po_number" value="{{ invoice.po_number }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div></div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Subtotal</label>
+      <input type="number" step="0.01" name="subtotal" value="{{ invoice.subtotal }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Tax</label>
+      <input type="number" step="0.01" name="tax" value="{{ invoice.tax }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Total</label>
+      <input type="number" step="0.01" name="total" value="{{ invoice.total }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+  </div>
+  <p class="text-xs text-slate-400">Saving re-runs validation and AI risk analysis against the updated details.</p>
+  <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5 text-sm">Save & re-validate</button>
+</form>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/admin/pages/{{ page_id }}/edit" class="text-sm text-slate-500 hover:text-ink">← Back to page</a>
+<h1 class="text-2xl font-bold mt-3 mb-1">Edit block</h1>
+<p class="text-slate-500 text-sm mb-6"><span class="badge bg-brand-50 text-brand-700">{{ BLOCK_TYPE_LABELS.get(block.block_type, block.block_type) }}</span></p>
+
+<form method="post" action="/admin/pages/{{ page_id }}/blocks/{{ block.id }}" enctype="multipart/form-data" class="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl space-y-4">
+
+  {% if 'heading' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Heading{{ ' *' if fields.heading else '' }}</label>
+    <input name="heading" {{ 'required' if fields.heading else '' }} value="{{ block.data_json.get('heading','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  </div>
+  {% endif %}
+
+  {% if 'subheading' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Subheading</label>
+    <input name="subheading" value="{{ block.data_json.get('subheading','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  </div>
+  {% endif %}
+
+  {% if 'title' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Title{{ ' *' if fields.title else '' }}</label>
+    <input name="title" {{ 'required' if fields.title else '' }} value="{{ block.data_json.get('title','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  </div>
+  {% endif %}
+
+  {% if 'description' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Description</label>
+    <input name="description" value="{{ block.data_json.get('description','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  </div>
+  {% endif %}
+
+  {% if 'question' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Question *</label>
+    <input name="question" required value="{{ block.data_json.get('question','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  </div>
+  {% endif %}
+
+  {% if 'answer' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Answer *</label>
+    <textarea name="answer" required rows="3" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">{{ block.data_json.get('answer','') }}</textarea>
+  </div>
+  {% endif %}
+
+  {% if 'body' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Body{{ ' *' if fields.body else '' }}</label>
+    <textarea name="body" {{ 'required' if fields.body else '' }} rows="5" placeholder="Leave a blank line between paragraphs" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">{{ block.data_json.get('body','') }}</textarea>
+  </div>
+  {% endif %}
+
+  {% if 'subtext' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Subtext</label>
+    <input name="subtext" value="{{ block.data_json.get('subtext','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+  </div>
+  {% endif %}
+
+  {% if 'primary_cta_label' in fields %}
+  <div class="grid grid-cols-2 gap-4">
+    <div><label class="text-sm font-medium text-slate-700">Primary button label</label>
+      <input name="primary_cta_label" value="{{ block.data_json.get('primary_cta_label','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+    <div><label class="text-sm font-medium text-slate-700">Primary button URL</label>
+      <input name="primary_cta_url" value="{{ block.data_json.get('primary_cta_url','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+    <div><label class="text-sm font-medium text-slate-700">Secondary button label</label>
+      <input name="secondary_cta_label" value="{{ block.data_json.get('secondary_cta_label','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+    <div><label class="text-sm font-medium text-slate-700">Secondary button URL</label>
+      <input name="secondary_cta_url" value="{{ block.data_json.get('secondary_cta_url','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+  </div>
+  {% endif %}
+
+  {% if 'button_label' in fields %}
+  <div class="grid grid-cols-2 gap-4">
+    <div><label class="text-sm font-medium text-slate-700">Button label</label>
+      <input name="button_label" value="{{ block.data_json.get('button_label','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+    <div><label class="text-sm font-medium text-slate-700">Button URL</label>
+      <input name="button_url" value="{{ block.data_json.get('button_url','') }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+  </div>
+  {% endif %}
+
+  {% if 'layout' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Layout</label>
+    <select name="layout" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      <option value="image_right" {{ 'selected' if block.data_json.get('layout')=='image_right' else '' }}>Image on the right</option>
+      <option value="image_left" {{ 'selected' if block.data_json.get('layout')=='image_left' else '' }}>Image on the left</option>
+    </select>
+  </div>
+  <div>
+    {% if block.data_json.get('image_url') %}
+    <p class="text-xs text-slate-500 mb-2">Current image:</p>
+    <img src="{{ block.data_json.get('image_url') }}" class="h-24 rounded-lg border border-slate-200 mb-2 object-cover">
+    {% endif %}
+    <label class="text-sm font-medium text-slate-700">Replace image (PNG/JPG/SVG, max 5MB)</label>
+    <input type="file" name="image_upload" accept=".png,.jpg,.jpeg,.svg" class="mt-1 w-full text-sm border border-slate-300 rounded-lg px-3 py-2">
+  </div>
+  {% endif %}
+
+  {% if 'size' in fields %}
+  <div>
+    <label class="text-sm font-medium text-slate-700">Size</label>
+    <select name="size" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      <option value="sm" {{ 'selected' if block.data_json.get('size')=='sm' else '' }}>Small</option>
+      <option value="md" {{ 'selected' if block.data_json.get('size','md')=='md' else '' }}>Medium</option>
+      <option value="lg" {{ 'selected' if block.data_json.get('size')=='lg' else '' }}>Large</option>
+    </select>
+  </div>
+  {% endif %}
+
+  <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5 text-sm">Save block</button>
+</form>
+{% endblock %}

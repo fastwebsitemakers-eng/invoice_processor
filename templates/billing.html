@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-start justify-between flex-wrap gap-3 mb-2">
+  <div>
+    <h1 class="text-2xl font-bold">Billing</h1>
+    <p class="text-slate-500 text-sm mt-1">Current plan: <strong>{{ PLAN_LIMITS[org.plan].label }}</strong> · {{ used }}/{{ PLAN_LIMITS[org.plan].invoices }} invoices used this month</p>
+  </div>
+  {% if STRIPE_ENABLED and org.plan != 'free' %}
+  <form method="post" action="/billing/portal">
+    <button class="text-sm font-semibold border border-slate-200 hover:border-slate-300 rounded-lg px-4 py-2">Manage billing →</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if upgraded %}
+<div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+  Payment received — thanks! Your plan updates automatically as soon as Stripe confirms the subscription (usually within a few seconds).
+</div>
+{% endif %}
+
+{% if limit_reached %}
+<div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+  You've reached your monthly invoice limit. Upgrade below to keep processing invoices.
+</div>
+{% endif %}
+
+{% if not STRIPE_ENABLED %}
+<div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+  Stripe isn't configured in this environment, so upgrades below use a mock provider and don't charge a real card. Set <code class="bg-white/60 px-1 rounded">STRIPE_SECRET_KEY</code> (and the plan price IDs) in <code class="bg-white/60 px-1 rounded">.env</code> to accept real payments.
+</div>
+{% endif %}
+
+<div class="grid md:grid-cols-4 gap-5">
+  {% for key, plan in PLAN_LIMITS.items() %}
+  <div class="rounded-2xl border {{ 'border-brand-600 shadow-md' if key==org.plan else 'border-slate-200' }} bg-white p-6 flex flex-col">
+    <p class="font-semibold text-slate-500 text-sm">{{ plan.label }}</p>
+    <p class="text-3xl font-bold mt-1">${{ plan.price }}<span class="text-sm font-medium text-slate-400">/mo</span></p>
+    <ul class="mt-4 space-y-1.5 text-sm text-slate-600 flex-1">
+      <li>{{ plan.invoices }} invoices/mo</li>
+      <li>{{ plan.users }} users</li>
+    </ul>
+
+    {% if key == org.plan %}
+      <span class="mt-5 block text-center text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg py-2">Current plan</span>
+
+    {% elif key == 'free' %}
+      {% if STRIPE_ENABLED %}
+        <form method="post" action="/billing/portal">
+          <button class="mt-5 w-full text-sm font-semibold rounded-lg py-2 border border-slate-200 hover:border-brand-500 hover:text-brand-700">Downgrade via billing portal</button>
+        </form>
+      {% else %}
+        <form method="post" action="/billing/upgrade">
+          <input type="hidden" name="plan" value="free">
+          <button class="mt-5 w-full text-sm font-semibold rounded-lg py-2 border border-slate-200 hover:border-brand-500 hover:text-brand-700">Switch to Free</button>
+        </form>
+      {% endif %}
+
+    {% elif STRIPE_ENABLED %}
+      {% if org.plan == 'free' %}
+        <form method="post" action="/billing/checkout">
+          <input type="hidden" name="plan" value="{{ key }}">
+          <button class="mt-5 w-full text-sm font-semibold rounded-lg py-2 bg-brand-600 hover:bg-brand-700 text-white">Pay & upgrade</button>
+        </form>
+      {% else %}
+        <form method="post" action="/billing/portal">
+          <button class="mt-5 w-full text-sm font-semibold rounded-lg py-2 border border-slate-200 hover:border-brand-500 hover:text-brand-700">Switch via billing portal</button>
+        </form>
+      {% endif %}
+
+    {% else %}
+      <form method="post" action="/billing/upgrade">
+        <input type="hidden" name="plan" value="{{ key }}">
+        <button class="mt-5 w-full text-sm font-semibold rounded-lg py-2 border border-slate-200 hover:border-brand-500 hover:text-brand-700">Upgrade (mock)</button>
+      </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<p class="text-xs text-slate-400 mt-6">
+  {% if STRIPE_ENABLED %}
+  Payments are processed by Stripe. Upgrading from Free opens a secure Stripe Checkout page; changing plans, updating your card, or canceling is handled through the Stripe billing portal.
+  {% else %}
+  Billing is currently processed through a mock provider in this environment. Wiring in real payments only requires setting <code class="bg-slate-100 px-1 rounded">STRIPE_SECRET_KEY</code> and the plan price IDs — the billing service interface (<code class="bg-slate-100 px-1 rounded">BillingProvider</code>) stays the same.
+  {% endif %}
+</p>
+{% endblock %}

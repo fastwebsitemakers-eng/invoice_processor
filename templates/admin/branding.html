@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-1">Branding</h1>
+<p class="text-slate-500 text-sm mb-6">Rename and re-skin this app for a different product. Changes apply everywhere immediately — sidebar, landing page, login/register, and browser tab title.</p>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <form method="post" action="/admin/branding" enctype="multipart/form-data" class="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+    <div>
+      <label class="text-sm font-medium text-slate-700">Product name</label>
+      <input name="product_name" required value="{{ settings.product_name }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Tagline</label>
+      <input name="tagline" value="{{ settings.tagline }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      <p class="text-xs text-slate-400 mt-1">Shown as the hero headline on the landing page.</p>
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Support email</label>
+      <input name="support_email" type="email" value="{{ settings.support_email }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="text-sm font-medium text-slate-700">Logo (PNG, JPG, or SVG — max 2MB)</label>
+      <input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg" class="mt-1 w-full text-sm border border-slate-300 rounded-lg px-3 py-2">
+      {% if settings.logo_url %}
+      <label class="flex items-center gap-2 mt-2 text-xs text-slate-500">
+        <input type="checkbox" name="remove_logo" value="1"> Remove current logo (fall back to text name)
+      </label>
+      {% endif %}
+    </div>
+
+    <div class="pt-2 border-t border-slate-100">
+      <p class="text-sm font-medium text-slate-700 mb-1">Domain terminology</p>
+      <p class="text-xs text-slate-400 mb-3">Relabels the built-in record/party workflow for a different business (e.g. "Claim"/"Provider" instead of "Invoice"/"Vendor") — the underlying data model doesn't change, only what the UI calls things.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-medium text-slate-600">Record — singular</label>
+          <input name="term_record_singular" value="{{ settings.term_record_singular }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-600">Record — plural</label>
+          <input name="term_record_plural" value="{{ settings.term_record_plural }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-600">Party — singular</label>
+          <input name="term_party_singular" value="{{ settings.term_party_singular }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-600">Party — plural</label>
+          <input name="term_party_plural" value="{{ settings.term_party_plural }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        </div>
+      </div>
+    </div>
+
+    <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5 text-sm">Save branding</button>
+  </form>
+
+  <div class="space-y-6">
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="font-semibold text-sm mb-3">Current preview</h2>
+      <div class="rounded-lg border border-slate-100 bg-slate-50 p-5 flex items-center gap-2">
+        {% if settings.logo_url %}
+        <img src="{{ settings.logo_url }}" alt="{{ settings.product_name }}" class="h-8 max-w-[200px] object-contain">
+        {% else %}
+        <span class="font-bold text-lg text-brand-700">{{ settings.product_name }}</span>
+        {% endif %}
+      </div>
+      <p class="text-sm text-slate-600 mt-4">{{ settings.tagline or '(no tagline set)' }}</p>
+      <p class="text-xs text-slate-400 mt-3">Nav shows: "{{ settings.term_record_plural }}" and "{{ settings.term_party_plural }}"</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="font-semibold text-sm mb-2">Manage pages</h2>
+      <p class="text-xs text-slate-400 mb-3">Edit the landing page, pricing page, and any custom pages block by block.</p>
+      <a href="/admin/pages" class="inline-block text-sm font-semibold text-brand-600 border border-brand-100 hover:bg-brand-50 rounded-lg px-4 py-2">Go to Pages →</a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="font-semibold text-sm mb-2">Reset to defaults</h2>
+      <p class="text-xs text-slate-400 mb-3">Clears the logo and restores the name/tagline/terminology from your <code class="bg-slate-100 px-1 rounded">.env</code> file (<code class="bg-slate-100 px-1 rounded">APP_NAME</code> / <code class="bg-slate-100 px-1 rounded">APP_TAGLINE</code>), or the built-in defaults if those aren't set. Pages/blocks are not affected.</p>
+      <form method="post" action="/admin/branding/reset" onsubmit="return confirm('Reset branding to defaults? This removes any uploaded logo.');">
+        <button class="text-sm font-semibold text-rose-600 border border-rose-200 hover:bg-rose-50 rounded-lg px-4 py-2">Reset branding</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

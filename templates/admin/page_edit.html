@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/admin/pages" class="text-sm text-slate-500 hover:text-ink">← Back to pages</a>
+
+<div class="flex items-start justify-between flex-wrap gap-3 mt-3 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">{{ page.title }}</h1>
+    <p class="text-slate-500 text-sm mt-1">{{ public_url }} {% if not page.is_published %}<span class="badge bg-slate-100 text-slate-500 ml-1">draft — not publicly visible</span>{% endif %}</p>
+  </div>
+  <a href="{{ public_url }}" target="_blank" class="text-sm font-semibold border border-slate-200 hover:border-slate-300 rounded-lg px-4 py-2">View page →</a>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 space-y-4">
+    <h2 class="font-semibold text-sm text-slate-500 uppercase tracking-wide">Content blocks</h2>
+
+    {% if blocks %}
+    {% for b in blocks %}
+    <div class="bg-white rounded-xl border {{ 'border-slate-200' if b.is_active else 'border-slate-100 opacity-60' }} p-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <span class="badge bg-brand-50 text-brand-700">{{ BLOCK_TYPE_LABELS.get(b.block_type, b.block_type) }}</span>
+          {% if not b.is_active %}<span class="badge bg-slate-100 text-slate-500 ml-1">hidden</span>{% endif %}
+          <p class="text-sm text-slate-600 mt-2">
+            {% if b.block_type in ('hero','section_heading','cta_banner','pricing_section') %}{{ b.data_json.get('heading','') }}
+            {% elif b.block_type == 'rich_text' %}{{ b.data_json.get('heading') or (b.data_json.get('body','')[:80] + '…') }}
+            {% elif b.block_type == 'feature_item' %}{{ b.data_json.get('title','') }}
+            {% elif b.block_type == 'faq_item' %}{{ b.data_json.get('question','') }}
+            {% elif b.block_type == 'image_text' %}{{ b.data_json.get('heading','') or '(image + text block)' }}
+            {% elif b.block_type == 'spacer' %}Size: {{ b.data_json.get('size','md') }}
+            {% endif %}
+          </p>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <form method="post" action="/admin/pages/{{ page.id }}/blocks/{{ b.id }}/move-up"><button class="text-xs text-slate-400 hover:text-ink px-1.5" title="Move up">↑</button></form>
+          <form method="post" action="/admin/pages/{{ page.id }}/blocks/{{ b.id }}/move-down"><button class="text-xs text-slate-400 hover:text-ink px-1.5" title="Move down">↓</button></form>
+          <a href="/admin/pages/{{ page.id }}/blocks/{{ b.id }}/edit" class="text-xs text-brand-600 font-medium px-2">Edit</a>
+          <form method="post" action="/admin/pages/{{ page.id }}/blocks/{{ b.id }}/toggle"><button class="text-xs text-slate-500 hover:text-ink px-1">{{ 'Hide' if b.is_active else 'Show' }}</button></form>
+          <form method="post" action="/admin/pages/{{ page.id }}/blocks/{{ b.id }}/delete" onsubmit="return confirm('Delete this block?');"><button class="text-xs text-slate-400 hover:text-rose-600 px-1">Delete</button></form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="bg-white rounded-xl border border-dashed border-slate-300 text-center py-10">
+      <p class="text-slate-400 text-sm">No blocks yet — add one below.</p>
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <h2 class="font-semibold text-sm mb-3">Add a block</h2>
+      <form method="post" action="/admin/pages/{{ page.id }}/blocks" enctype="multipart/form-data" id="add-block-form">
+        <label class="text-xs font-medium text-slate-600 block mb-1">Block type</label>
+        <select name="block_type" id="block_type_select" onchange="showBlockFields(this.value)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mb-4">
+          <option value="">— Choose a type —</option>
+          {% for bt in BLOCK_TYPES %}<option value="{{ bt }}">{{ BLOCK_TYPE_LABELS.get(bt, bt) }}</option>{% endfor %}
+        </select>
+
+        <div class="field-group hidden" data-type="hero">
+          <div class="grid gap-3">
+            <input name="heading" placeholder="Heading *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <input name="subheading" placeholder="Subheading" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <div class="grid grid-cols-2 gap-3">
+              <input name="primary_cta_label" placeholder="Primary button label" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <input name="primary_cta_url" placeholder="Primary button URL" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <input name="secondary_cta_label" placeholder="Secondary button label" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <input name="secondary_cta_url" placeholder="Secondary button URL" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="section_heading">
+          <div class="grid gap-3">
+            <input name="heading" placeholder="Heading *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <input name="subheading" placeholder="Subheading" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="rich_text">
+          <div class="grid gap-3">
+            <input name="heading" placeholder="Heading (optional)" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <textarea name="body" rows="4" placeholder="Body text * — leave a blank line between paragraphs" class="rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="feature_item">
+          <p class="text-xs text-slate-400 mb-2">Add these one at a time — consecutive feature/list items are grouped into a grid automatically.</p>
+          <div class="grid gap-3">
+            <input name="title" placeholder="Title *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <input name="description" placeholder="Description" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="faq_item">
+          <p class="text-xs text-slate-400 mb-2">Add these one at a time — consecutive FAQ items are grouped into one accordion automatically.</p>
+          <div class="grid gap-3">
+            <input name="question" placeholder="Question *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <textarea name="answer" rows="2" placeholder="Answer *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="cta_banner">
+          <div class="grid gap-3">
+            <input name="heading" placeholder="Heading *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <input name="subtext" placeholder="Subtext" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <div class="grid grid-cols-2 gap-3">
+              <input name="button_label" placeholder="Button label" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <input name="button_url" placeholder="Button URL" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="image_text">
+          <div class="grid gap-3">
+            <input name="heading" placeholder="Heading" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <textarea name="body" rows="3" placeholder="Body text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
+            <select name="layout" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="image_right">Image on the right</option>
+              <option value="image_left">Image on the left</option>
+            </select>
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">Image (PNG/JPG/SVG, max 5MB)</label>
+              <input type="file" name="image_upload" accept=".png,.jpg,.jpeg,.svg" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="pricing_section">
+          <p class="text-xs text-slate-400 mb-2">Plan cards render automatically from your Billing plans below this heading.</p>
+          <div class="grid gap-3">
+            <input name="heading" placeholder="Heading *" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <input name="subheading" placeholder="Subheading" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          </div>
+        </div>
+
+        <div class="field-group hidden" data-type="spacer">
+          <select name="size" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <option value="sm">Small</option>
+            <option value="md" selected>Medium</option>
+            <option value="lg">Large</option>
+          </select>
+        </div>
+
+        <button class="mt-4 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-5 py-2.5">Add block</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <h2 class="font-semibold text-sm text-slate-500 uppercase tracking-wide mb-3">Page settings</h2>
+    <form method="post" action="/admin/pages/{{ page.id }}" class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">Title</label>
+        <input name="title" required value="{{ page.title }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">URL slug</label>
+        <input name="slug" required value="{{ page.slug }}" {{ 'readonly' if page.is_system else '' }} class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm {{ 'bg-slate-50 text-slate-400' if page.is_system else '' }}">
+        {% if page.is_system %}<p class="text-[11px] text-slate-400 mt-1">System page URLs can't be changed.</p>{% endif %}
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">Meta description</label>
+        <input name="meta_description" value="{{ page.meta_description }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">Nav label</label>
+        <input name="nav_label" value="{{ page.nav_label }}" placeholder="{{ page.title }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">Nav order</label>
+        <input type="number" name="nav_order" value="{{ page.nav_order }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+      </div>
+      <label class="flex items-center gap-2 text-sm text-slate-600">
+        <input type="checkbox" name="show_in_nav" value="1" {{ 'checked' if page.show_in_nav else '' }}> Show in site nav
+      </label>
+      <label class="flex items-center gap-2 text-sm text-slate-600">
+        <input type="checkbox" name="is_published" value="1" {{ 'checked' if page.is_published else '' }}> Published (publicly visible)
+      </label>
+      <button class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg py-2.5 text-sm">Save page settings</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function showBlockFields(type) {
+  document.querySelectorAll('.field-group').forEach(function(el) {
+    el.classList.toggle('hidden', el.dataset.type !== type);
+  });
+}
+</script>
+{% endblock %}

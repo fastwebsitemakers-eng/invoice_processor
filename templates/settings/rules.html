@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-1">Validation Rules</h1>
+<p class="text-slate-500 text-sm mb-6">Toggle rules on/off and set severity. Severity controls how much each finding adds to an invoice's risk score (low +10, medium +20, high +35).</p>
+
+<div class="flex gap-2 mb-6 text-sm">
+  <a href="/settings" class="px-3 py-1.5 rounded-lg text-slate-500 hover:bg-slate-100">Organization</a>
+  <a href="/settings/users" class="px-3 py-1.5 rounded-lg text-slate-500 hover:bg-slate-100">Users</a>
+  <a href="/settings/rules" class="px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 font-medium">Validation Rules</a>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden mb-8">
+  <div class="px-5 py-4 border-b border-slate-100 font-semibold text-sm">Built-in rules</div>
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Rule</th><th class="px-5 py-2 font-medium">Severity</th>
+      <th class="px-5 py-2 font-medium">Status</th><th class="px-5 py-2"></th>
+    </tr></thead>
+    <tbody>
+    {% for r in rules if r.rule_type != 'amount_threshold' %}
+      <tr class="border-b border-slate-50">
+        <td class="px-5 py-3">
+          <p class="font-medium">{{ r.name }}</p>
+          <p class="text-xs text-slate-400">{{ r.description }}</p>
+        </td>
+        <td class="px-5 py-3">
+          <form method="post" action="/settings/rules/{{ r.id }}" class="flex items-center gap-2">
+            <select name="severity" onchange="this.form.requestSubmit()" class="rounded border border-slate-200 px-2 py-1 text-xs">
+              {% for s in ['low','medium','high'] %}<option value="{{ s }}" {{ 'selected' if s==r.severity else '' }}>{{ s }}</option>{% endfor %}
+            </select>
+          </form>
+        </td>
+        <td class="px-5 py-3">
+          <span class="badge {{ 'bg-emerald-100 text-emerald-700' if r.is_active else 'bg-slate-100 text-slate-500' }}">{{ 'active' if r.is_active else 'disabled' }}</span>
+        </td>
+        <td class="px-5 py-3 text-right">
+          <form method="post" action="/settings/rules/{{ r.id }}/toggle">
+            <button class="text-xs text-brand-600 font-medium">{{ 'Disable' if r.is_active else 'Enable' }}</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  <div class="px-5 py-4 border-b border-slate-100 font-semibold text-sm">Custom amount-threshold rules</div>
+
+  <div class="p-5 border-b border-slate-100">
+    <form method="post" action="/settings/rules" class="flex flex-wrap items-end gap-3">
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">Flag invoices at or above</label>
+        <input type="number" step="0.01" name="threshold" required placeholder="5000.00" class="rounded-lg border border-slate-300 px-3 py-2 text-sm w-40">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-600 block mb-1">Severity</label>
+        <select name="severity" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+          <option value="low">low</option><option value="medium" selected>medium</option><option value="high">high</option>
+        </select>
+      </div>
+      <button class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2">Add rule</button>
+    </form>
+  </div>
+
+  {% set custom_rules = rules | selectattr('rule_type', 'equalto', 'amount_threshold') | list %}
+  {% if custom_rules %}
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs text-slate-400 border-b border-slate-100">
+      <th class="px-5 py-2 font-medium">Rule</th><th class="px-5 py-2 font-medium">Severity</th>
+      <th class="px-5 py-2 font-medium">Status</th><th class="px-5 py-2"></th>
+    </tr></thead>
+    <tbody>
+    {% for r in custom_rules %}
+      <tr class="border-b border-slate-50">
+        <td class="px-5 py-3 font-medium">{{ r.name }}</td>
+        <td class="px-5 py-3">
+          <form method="post" action="/settings/rules/{{ r.id }}" class="flex items-center gap-2">
+            <input type="hidden" name="threshold" value="{{ (r.configuration_json or {}).get('threshold', 0) }}">
+            <select name="severity" onchange="this.form.requestSubmit()" class="rounded border border-slate-200 px-2 py-1 text-xs">
+              {% for s in ['low','medium','high'] %}<option value="{{ s }}" {{ 'selected' if s==r.severity else '' }}>{{ s }}</option>{% endfor %}
+            </select>
+          </form>
+        </td>
+        <td class="px-5 py-3">
+          <span class="badge {{ 'bg-emerald-100 text-emerald-700' if r.is_active else 'bg-slate-100 text-slate-500' }}">{{ 'active' if r.is_active else 'disabled' }}</span>
+        </td>
+        <td class="px-5 py-3 text-right whitespace-nowrap">
+          <form method="post" action="/settings/rules/{{ r.id }}/toggle" class="inline">
+            <button class="text-xs text-brand-600 font-medium mr-3">{{ 'Disable' if r.is_active else 'Enable' }}</button>
+          </form>
+          <form method="post" action="/settings/rules/{{ r.id }}/delete" class="inline" onsubmit="return confirm('Delete this rule?');">
+            <button class="text-xs text-slate-400 hover:text-rose-600">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center py-10"><p class="text-slate-400 text-sm">No custom threshold rules yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}
