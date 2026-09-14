@@ -44,6 +44,68 @@ MAX_LOGO_SIZE = 2 * 1024 * 1024  # 2 MB
 MAX_CONTENT_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 Base.metadata.create_all(bind=engine)
+
+def ensure_bootstrap_admin():
+    """Create the initial platform administrator from environment variables.
+
+    This is intentionally idempotent: if the admin already exists, nothing
+    is changed. Remove the ADMIN_EMAIL and ADMIN_PASSWORD environment
+    variables after the initial production setup is complete.
+    """
+    admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.environ.get("ADMIN_PASSWORD", "").strip()
+
+    if not admin_email or not admin_password:
+        return
+
+    if len(admin_password) < 8:
+        raise RuntimeError("ADMIN_PASSWORD must be at least 8 characters.")
+
+    with session_scope() as db:
+        existing = db.scalar(
+            select(User).where(User.email == admin_email)
+        )
+
+        if existing:
+            return
+
+        org = Organization(
+            name=os.environ.get("ADMIN_ORG_NAME", "InvoicePilot"),
+            slug=os.environ.get("ADMIN_ORG_SLUG", "invoicepilot"),
+            email=admin_email,
+            plan="free",
+        )
+
+        db.add(org)
+        db.flush()
+
+        user = User(
+            organization_id=org.id,
+            email=admin_email,
+            password_hash=hash_password(admin_password),
+            first_name=os.environ.get("ADMIN_FIRST_NAME", "Admin"),
+            last_name=os.environ.get("ADMIN_LAST_NAME", "User"),
+            role="owner",
+            is_active=True,
+            is_platform_admin=True,
+        )
+
+        db.add(user)
+
+        db.add(
+            Subscription(
+                organization_id=org.id,
+                plan="free",
+                status="active",
+            )
+        )
+
+        ensure_default_rules(db, org.id)
+
+        db.commit()
+
+ensure_bootstrap_admin()
+
 with session_scope() as _startup_db:
     ensure_default_pages(_startup_db)
 
